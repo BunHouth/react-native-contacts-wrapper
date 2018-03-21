@@ -25,6 +25,27 @@ const int REQUEST_EMAIL = 2;
 
 RCT_EXPORT_MODULE(ContactsWrapper);
 
+RCT_EXPORT_METHOD(checkPermission:(RCTResponseSenderBlock) callback)
+{
+  CNAuthorizationStatus authStatus = [CNContactStore authorizationStatusForEntityType:CNEntityTypeContacts];
+  if (authStatus == CNAuthorizationStatusDenied || authStatus == CNAuthorizationStatusRestricted){
+    callback(@[[NSNull null], @"denied"]);
+  } else if (authStatus == CNAuthorizationStatusAuthorized){
+    callback(@[[NSNull null], @"authorized"]);
+  } else {
+    callback(@[[NSNull null], @"undefined"]);
+  }
+}
+
+RCT_EXPORT_METHOD(requestPermission:(RCTResponseSenderBlock) callback)
+{
+  CNContactStore* contactStore = [[CNContactStore alloc] init];
+
+  [contactStore requestAccessForEntityType:CNEntityTypeContacts completionHandler:^(BOOL granted, NSError * _Nullable error) {
+    [self checkPermission:callback];
+  }];
+}
+
 /* Get basic contact data as JS object */
 RCT_EXPORT_METHOD(getContact:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
   {
